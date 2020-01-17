@@ -33,8 +33,8 @@ def servo_set(servoPin, servoOutput, servoPinType="", servoHeader=0):
 		#print("echo " + "P" + str(servoHeader) + "-" + str(servoPin) + "=" + servoOutput + " > /dev/servoblaster")
 		
 	else: #We use the physical pin number on header one by default
-		os.system("echo " + "" + str(servoPin) + "=" + servoOutput + " > /dev/servoblaster")
-		#print("echo " + "P1-" + str(servoPin) + "=" + servoOutput + " > /dev/servoblaster")
+		os.system("echo " + "" + str(servoPin) + "=" + str(servoOutput) + " > /dev/servoblaster")
+		print("echo " + str(servoPin) + "=" + str(servoOutput) + " > /dev/servoblaster")
 
 def servo_map(value, oldMin, oldMax, newMin, newMax):
     # Figure out how 'wide' each range is
