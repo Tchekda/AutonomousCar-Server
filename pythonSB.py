@@ -68,6 +68,13 @@ def servo_configure(servoPin, minPulse, maxPulse, minAngle, maxAngle):
 	elif (servo_maxAngle[servoPin] == 0):
 		servo_maxAngle[servoPin] = 100
 
+def servo_get():
+	f=open("/dev/servoblaster", "r")
+	content = f.read()
+	pairs = content.split("=")
+	return int(pairs[1])
+
+
 def servo_set_angle(servoPin, servoAngle): 
 	# Currently only supports physical pin numbers. If enough interest is generated I may 
 	# add support for all the diffferent types like the set_servo() funciton does above.

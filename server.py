@@ -6,16 +6,25 @@ from pythonSB import *
 import traceback
 
 
-speed = 0
+received_data = {}
 
 def keepSpeed():
     while True:
-        if (speed >= 0) :
-            if (speed > 115 and speed < 149):
-                servo_set(0, speed)
+        if ('speed' in received_data and received_data['speed'] >= 0) :
+            if ('keep' in received_data and received_data['keep']):
+                servo_set(0, received_data['speed'])
             time.sleep(0.1)
         else :
             break
+
+def sendData(connection):
+    data = ""
+    if 'speed' in received_data:
+        data += "speed=" + str(received_data['speed']) + "|"
+    if 'keep' in received_data:
+        data += "keep=" + str(int((received_data['keep']))) + "|"
+    data = ((data + "\n").encode("UTF-8"))
+    connection.sendall(data)
 
 def main():
     # Create a TCP/IP socket
@@ -33,7 +42,7 @@ def main():
         connection, client_address = sock.accept()
         try:
             print('connection from', client_address)
-
+            sendData(connection)
             # Receive the data in small chunks and retransmit it
             while True:
                 try:
@@ -50,21 +59,27 @@ def main():
                                     received[text[0]] = text[1]
                             except:
                                 pass
-                        connection.sendall(data)
                         if(len(received) > 0):
-                            #print('formatted "%s"' % received)
+                            # print('formatted "%s"' % received)
                             for key, value in received.items():
-                                global speed
+                                global received_data
                                 if key == 'speed':
                                     try : 
+                                        received_data['speed'] = int(value)
                                         if(received['keep'] and int(received['keep']) == 1):
-                                            speed = int(value)
+                                            received_data['keep'] = bool(int(received['keep']))
                                         else:
-                                            servo_set(0, int(value))
+                                            servo_set(0, received_data['speed'])
                                     except OSError:
                                         pass
                                 elif key == "keep":
-                                    speed = 0
+                                    try:
+                                        if(received['keep'] and int(received['keep']) == 0):
+                                            received_data['keep'] = 0
+                                    except OSError:
+                                        pass
+                            sendData(connection)
+
                         else:
                             print('received "%s"' % data)
                             print('formatted "%s"' % received)
