@@ -39,7 +39,11 @@ def main():
     while True:
         # Wait for a connection
         print('waiting for a connection')
-        connection, client_address = sock.accept()
+        try:
+            connection, client_address = sock.accept()
+        except KeyboardInterrupt:
+            print("Keyboard Stop")
+            break
         try:
             print('connection from', client_address)
             sendData(connection)
@@ -60,7 +64,7 @@ def main():
                             except:
                                 pass
                         if(len(received) > 0):
-                            # print('formatted "%s"' % received)
+                            print('formatted "%s"' % received)
                             for key, value in received.items():
                                 global received_data
                                 if key == 'speed':
@@ -90,7 +94,6 @@ def main():
                     connection.close()
                     break
         except socket.error:
-            print('client interrompu')
             traceback.print_exc()
         except:
             connection.close()
