@@ -7,8 +7,8 @@ import traceback
 
 
 received_data = {
-    'speed' = 0,
-    'keep' = 0
+    "speed": 0,
+    "keep": 0
     }
 
 def keepSpeed():
