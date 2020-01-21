@@ -6,7 +6,10 @@ from pythonSB import *
 import traceback
 
 
-received_data = {}
+received_data = {
+    'speed' = 0,
+    'keep' = 0
+    }
 
 def keepSpeed():
     while True:
@@ -15,6 +18,7 @@ def keepSpeed():
                 servo_set(0, received_data['speed'])
             time.sleep(0.1)
         else :
+            print("Stoping thread")
             break
 
 def sendData(connection):
@@ -105,8 +109,13 @@ def main():
 
 
 if __name__ == '__main__':
+    print("Starting the server..")
     thread = Thread(target=keepSpeed)
+    print("Thread initialized")
     thread.start()
+    print("Thread started")
     main()
+    print("Main loop finished")
     speed = -1
     thread.join()
+    print("Thread joined")
