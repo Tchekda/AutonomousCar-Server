@@ -43,6 +43,8 @@ def main():
     while True:
         # Wait for a connection
         print('waiting for a connection')
+        received_data['keep'] = 0
+        received_data['speed'] = 0
         try:
             connection, client_address = sock.accept()
         except KeyboardInterrupt:
@@ -109,6 +111,7 @@ def main():
 
 
 if __name__ == '__main__':
+    global received_data
     print("Starting the server..")
     thread = Thread(target=keepSpeed)
     print("Thread initialized")
@@ -116,6 +119,6 @@ if __name__ == '__main__':
     print("Thread started")
     main()
     print("Main loop finished")
-    speed = -1
+    received_data['speed'] = -1
     thread.join()
     print("Thread joined")
