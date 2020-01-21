@@ -1,34 +1,48 @@
 import socket
 import sys
-from threading import Thread
+from threading import Thread, Timer
 import time
-from pythonSB import *
+from pythonSB import servo_get, servo_set
 import traceback
 
 
 received_data = {
     "speed": 0,
-    "keep": 0
+    "keep": 0,
     }
 
 def keepSpeed():
     while True:
-        if ('speed' in received_data and received_data['speed'] >= 0) :
-            if ('keep' in received_data and received_data['keep']):
-                servo_set(0, received_data['speed'])
+        if (received_data['speed'] != None) :
+            if (received_data['keep']):
+                servo_set(0, speedToFreq(received_data['speed']))
             time.sleep(0.1)
         else :
             print("Stoping thread")
             break
 
+def speedToFreq(speed):
+    freq = 150
+    if(speed > 0):
+        freq = speed + 158
+    elif (speed < 0):
+        freq = speed + 149
+    return freq
+
 def sendData(connection):
     data = ""
-    if 'speed' in received_data:
-        data += "speed=" + str(received_data['speed']) + "|"
-    if 'keep' in received_data:
-        data += "keep=" + str(int((received_data['keep']))) + "|"
+    data += "speed=" + str(received_data['speed']) + "|"
+    data += "keep=" + str(int((received_data['keep']))) + "|"
     data = ((data + "\n").encode("UTF-8"))
     connection.sendall(data)
+
+def updateSpeed(oldSpeed, connection):
+    global received_data
+    if (oldSpeed == received_data['speed'] and received_data['keep'] == False): #Speed hasn't evolved
+        received_data['speed'] = 0
+        print("Speed has been reset")
+        sendData(connection)
+
 
 def main():
     # Create a TCP/IP socket
@@ -41,6 +55,7 @@ def main():
     sock.listen(1)
 
     while True:
+        global received_data
         # Wait for a connection
         print('waiting for a connection')
         received_data['keep'] = 0
@@ -72,14 +87,15 @@ def main():
                         if(len(received) > 0):
                             print('formatted "%s"' % received)
                             for key, value in received.items():
-                                global received_data
                                 if key == 'speed':
                                     try : 
                                         received_data['speed'] = int(value)
                                         if(received['keep'] and int(received['keep']) == 1):
                                             received_data['keep'] = bool(int(received['keep']))
                                         else:
-                                            servo_set(0, received_data['speed'])
+                                            servo_set(0, speedToFreq(received_data['speed']))
+                                            t = Timer(1.5, updateSpeed, args=[received_data['speed'], connection])
+                                            t.start()
                                     except OSError:
                                         pass
                                 elif key == "keep":
@@ -111,7 +127,6 @@ def main():
 
 
 if __name__ == '__main__':
-    global received_data
     print("Starting the server..")
     thread = Thread(target=keepSpeed)
     print("Thread initialized")
@@ -119,6 +134,6 @@ if __name__ == '__main__':
     print("Thread started")
     main()
     print("Main loop finished")
-    received_data['speed'] = -1
+    received_data['speed'] = None
     thread.join()
     print("Thread joined")
