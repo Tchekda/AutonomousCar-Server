@@ -38,7 +38,7 @@ def sendData(connection):
 
 def updateSpeed(oldSpeed, connection):
     global received_data
-    if (oldSpeed == received_data['speed'] and received_data['keep'] == False): #Speed hasn't evolved
+    if (oldSpeed == received_data['speed'] and oldSpeed != -33 and oldSpeed != 96 and received_data['keep'] == False): #Speed hasn't evolved
         received_data['speed'] = 0
         print("Speed has been reset")
         sendData(connection)
