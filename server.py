@@ -2,19 +2,20 @@ import socket
 import sys
 from threading import Thread, Timer
 import time
-from pythonSB import servo_get, servo_set
+from pythonSB import servo_get, servo_set, servo_configure, servo_set_angle
 import traceback
 
 
 received_data = {
     "speed": 0,
     "keep": 0,
+    "angle": 0
     }
 
 def keepSpeed():
     while True:
         if (received_data['speed'] != None) :
-            if (received_data['keep']):
+            if (received_data['keep'] and received_data['speed'] != 0):
                 servo_set(0, speedToFreq(received_data['speed']))
             time.sleep(0.1)
         else :
@@ -33,12 +34,13 @@ def sendData(connection):
     data = ""
     data += "speed=" + str(received_data['speed']) + "|"
     data += "keep=" + str(int((received_data['keep']))) + "|"
+    data += "angle=" + str(received_data['angle']) + "|"
     data = ((data + "\n").encode("UTF-8"))
     connection.sendall(data)
 
 def updateSpeed(oldSpeed, connection):
     global received_data
-    if (oldSpeed == received_data['speed'] and oldSpeed != -33 and oldSpeed != 92 and received_data['keep'] == False): #Speed hasn't evolved
+    if (oldSpeed == received_data['speed'] and oldSpeed != -33 and oldSpeed != 92 and oldSpeed != 0 and received_data['keep'] == False): #Speed hasn't evolved
         received_data['speed'] = 0
         print("Speed has been reset")
         sendData(connection)
@@ -60,6 +62,8 @@ def main():
         print('waiting for a connection')
         received_data['keep'] = 0
         received_data['speed'] = 0
+        received_data['angle'] = 0
+        servo_set_angle(1, received_data['angle'])
         try:
             connection, client_address = sock.accept()
         except KeyboardInterrupt:
@@ -90,7 +94,7 @@ def main():
                                 if key == 'speed':
                                     try : 
                                         received_data['speed'] = int(value)
-                                        if(received['keep'] and int(received['keep']) == 1):
+                                        if(int(received['keep']) == 1):
                                             received_data['keep'] = bool(int(received['keep']))
                                         else:
                                             servo_set(0, speedToFreq(received_data['speed']))
@@ -100,8 +104,16 @@ def main():
                                         pass
                                 elif key == "keep":
                                     try:
-                                        if(received['keep'] and int(received['keep']) == 0):
+                                        if(int(value) == 0):
                                             received_data['keep'] = 0
+                                    except OSError:
+                                        pass
+                                elif key == "angle":
+                                    try:
+                                        angle = int(value)
+                                        if(angle >= -90 and angle <= 90):
+                                            received_data['angle'] = angle
+                                            servo_set_angle(1, angle)
                                     except OSError:
                                         pass
                             sendData(connection)
@@ -122,9 +134,7 @@ def main():
             traceback.print_exc()
             break
     sock.close()
-    print("Closing")
-
-
+    print("Socket Closed")
 
 if __name__ == '__main__':
     print("Starting the server..")
@@ -132,6 +142,8 @@ if __name__ == '__main__':
     print("Thread initialized")
     thread.start()
     print("Thread started")
+    servo_configure(1, 85, 215, -90 , 90)
+    print("Servo initialized")
     main()
     print("Main loop finished")
     received_data['speed'] = None

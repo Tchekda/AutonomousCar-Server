@@ -33,8 +33,9 @@ def servo_set(servoPin, servoOutput, servoPinType="", servoHeader=0):
 		#print("echo " + "P" + str(servoHeader) + "-" + str(servoPin) + "=" + servoOutput + " > /dev/servoblaster")
 		
 	else: #We use the physical pin number on header one by default
-		os.system("echo " + "" + str(servoPin) + "=" + str(servoOutput) + " > /dev/servoblaster")
-		print("echo " + str(servoPin) + "=" + str(servoOutput) + " > /dev/servoblaster")
+		command = "echo " + "" + str(servoPin) + "=" + str(servoOutput) + " > /dev/servoblaster"
+		os.system(command)
+		print(command)
 
 def servo_map(value, oldMin, oldMax, newMin, newMax):
     # Figure out how 'wide' each range is
@@ -80,8 +81,9 @@ def servo_set_angle(servoPin, servoAngle):
 	# add support for all the diffferent types like the set_servo() funciton does above.
 	# You don't have to pass the min/max parameters if you like the defaults.
 	us = servo_map(servoAngle, servo_minAngle[servoPin], servo_maxAngle[servoPin], servo_minPulse[servoPin], servo_maxPulse[servoPin])
-	os.system("echo " + "P1-" + str(servoPin) + "=" + str(us) + " > /dev/servoblaster")
-	#print us
+	command = "echo " + str(servoPin) + "=" + str(us) + " > /dev/servoblaster"
+	os.system(command)
+	print(command)
 
 #servo_configure(1, 900, 2100, -90, 90) #Steering - Pin number, min us output, max us output, min angle, max angle)
 #servo_configure(2, 1000, 2000, 0, 100) #Motor - Pin number, min us output, max us output, min angle, max angle)
