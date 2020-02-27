@@ -1,2 +1,7 @@
 __pycache__/
 info.txt
+*.pyc
+*.swp
+*.so
+test.py
+pixy.py

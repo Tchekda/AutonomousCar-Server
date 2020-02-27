@@ -43,6 +43,7 @@ def updateSpeed(oldSpeed, connection):
     if (oldSpeed == received_data['speed'] and oldSpeed != -33 and oldSpeed != 92 and oldSpeed != 0 and received_data['keep'] == False): #Speed hasn't evolved
         received_data['speed'] = 0
         print("Speed has been reset")
+        servo_set(0, 150)
         sendData(connection)
 
 
