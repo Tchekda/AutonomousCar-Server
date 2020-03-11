@@ -2,16 +2,29 @@ import socket
 import sys
 from threading import Thread, Timer
 import time
-from pythonSB import servo_get, servo_set, servo_configure, servo_set_angle
+from pythonSB import servo_get, servo_set, servo_configure, servo_set_angle, servo_map
 import traceback
+import pixy
+from ctypes import Structure, c_uint
+import pixy
 
+class Blocks (Structure):
+  _fields_ = [ ("m_signature", c_uint),
+    ("m_x", c_uint),
+    ("m_y", c_uint),
+    ("m_width", c_uint),
+    ("m_height", c_uint),
+    ("m_angle", c_uint),
+    ("m_index", c_uint),
+    ("m_age", c_uint) ]
 
 received_data = {
     "speed": 0,
     "keep": 0,
     "angle": 0
-    }
+}
 
+    
 def keepSpeed():
     while True:
         if (received_data['speed'] != None) :
@@ -25,9 +38,9 @@ def keepSpeed():
 def speedToFreq(speed):
     freq = 150
     if(speed > 0):
-        freq = speed + 158
+        freq = servo_map(speed, 0, 50, 149, 116)
     elif (speed < 0):
-        freq = speed + 149
+        freq = servo_map(speed, -20, 0, 250, 158)
     return freq
 
 def sendData(connection):
@@ -40,10 +53,10 @@ def sendData(connection):
 
 def updateSpeed(oldSpeed, connection):
     global received_data
-    if (oldSpeed == received_data['speed'] and oldSpeed != -33 and oldSpeed != 92 and oldSpeed != 0 and received_data['keep'] == False): #Speed hasn't evolved
+    if (oldSpeed == received_data['speed'] and oldSpeed != -20 and oldSpeed != 50 and oldSpeed != 0 and received_data['keep'] == False): #Speed hasn't evolved
         received_data['speed'] = 0
         print("Speed has been reset")
-        servo_set(0, 150)
+        #servo_set(0, 150)
         sendData(connection)
 
 
@@ -114,7 +127,7 @@ def main():
                                         angle = int(value)
                                         if(angle >= -90 and angle <= 90):
                                             received_data['angle'] = angle
-                                            servo_set_angle(1, angle)
+                                            #servo_set_angle(1, angle)
                                     except OSError:
                                         pass
                             sendData(connection)
@@ -144,7 +157,14 @@ if __name__ == '__main__':
     thread.start()
     print("Thread started")
     servo_configure(1, 85, 215, -90 , 90)
-    print("Servo initialized")
+    print("Servo initialized")   
+    # pixy.init ()
+    # pixy.change_prog ("color_connected_components")
+    # pixy.set_lamp (0, 0)
+    # print("Pixy initialized")
+    # height = pixy.get_frame_height()
+    # width = pixy.get_frame_width()
+    # print("Resolution : ", width, "by", height)
     main()
     print("Main loop finished")
     received_data['speed'] = None
